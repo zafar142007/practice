@@ -1,6 +1,8 @@
 package com.zafar;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 /**
@@ -38,7 +40,7 @@ import java.util.Scanner;
 public class VirtualFriends {
 	private Map<String, Node> nodes=new HashMap<>();
 	private Map<Integer, ConnectedComponent> components=new HashMap<>();
-	
+	private Map<Integer, List<ConnectedComponent>> componentAliasList=new HashMap<>();
 	public int addNodes(String node1, String node2){
 		Node n1=nodes.get(node1);
 		Node n2=nodes.get(node2);
@@ -47,6 +49,9 @@ public class VirtualFriends {
 			int index=getNextComponentIndex();
 			ConnectedComponent comp=new ConnectedComponent(index, 2);
 			components.put(index,comp);
+			List<ConnectedComponent> list=new ArrayList<ConnectedComponent>();
+			list.add(comp);
+			componentAliasList.put(index, list);
 			nodes.put(node1, new Node(node1,comp));
 			nodes.put(node2, new Node(node2,comp));
 			count=2;
@@ -75,17 +80,27 @@ public class VirtualFriends {
 			ConnectedComponent c1=n1.getComponent();
 			ConnectedComponent c2=n2.getComponent();
 			if(c1.getId()!=c2.getId()){ //join two components
-				int count1=c1.getCount();			
 				int index=getNextComponentIndex();
-	
-				c1.setId(index);
+				List<ConnectedComponent> list1=componentAliasList.get(c1.getId());
+				List<ConnectedComponent> list2=componentAliasList.get(c2.getId());
+				List<ConnectedComponent> list3=new ArrayList<>();
+				if(list1!=null && list2!=null){
+					count=list1.get(0).getCount()+list2.get(0).getCount();
+					for(ConnectedComponent c:list1){
+						c.setId(index);
+						c.setCount(count);
+						list3.add(c);
+					}
+					for(ConnectedComponent c:list2){
+						c.setId(index);
+						c.setCount(count);
+						list3.add(c);
+					}
+					componentAliasList.put(index, list3);
+				}else{
+					System.out.println("Some error occurred");
+				}
 				
-				int count2=c2.getCount();
-				c2.setId(index);
-				
-				c1.setCount(count1+count2);
-				c2.setCount(count1+count2);
-				count=count1+count2;
 			}else{ //no need to join
 				count=c1.getCount();
 			}
